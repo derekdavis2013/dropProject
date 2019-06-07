@@ -1,33 +1,51 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoClient } from 'mongodb';
 
-import db from './db/db'
+// import db from './db/db'
 
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-const mongod = new MongoMemoryServer({ debug: true });
+let mongod;
+let uri;
 
-const uri = mongod.getConnectionString();
-const port = mongod.getPort();
-const dbPath = mongod.getDbPath();
-const dbName = mongod.getDbName();
+let port;
+let dbPath;
+let dbName;
+let con;
+let db;
+let col;
+
 
 const PORT = 5000;
 
+const dbSetup = async () => {
+  const mongod = await new MongoMemoryServer();
+  const uri = await mongod.getConnectionString();
+
+  port = await mongod.getPort();
+  dbPath = await mongod.getDbPath();
+  dbName = await mongod.getDbName();
+  con = await MongoClient.connect(uri, { useNewUrlParser: true });
+  db = con.db(dbName);
+  col = db.collection('urlJobs');
+}
+
+dbSetup();
+
 app.get('/api/v1/jobs', (req, res) => {
-  console.log('mondo', mongod.getInstanceInfo())
+  // console.log('dbName', mongod.getCollectionInfos());
   res.status(200).send({
     success: 'true',
     message: 'jobs retrieved successfully',
-    jobs: db
-  })
+    jobs: 'the jobs'
+  });
 });
 
-app.post('/api/v1/new_job', (req, res) => {
-  console.log('REQUEST', req);
+app.post('/api/v1/new_job', async (req, res) => {
   if(!req.body.url) {
     return res.status(400).send({
       success: 'false',
@@ -35,18 +53,12 @@ app.post('/api/v1/new_job', (req, res) => {
     });
   }
 
-  const newJob = {
-    id: db.length + 1,
-    url: req.body.url,
-    status: 'created'
-  }
-
-  db.push(newJob);
+  const newJob = await col.insertOne({ url : req.body.url, status: 'created' });
 
   return res.status(201).send({
     success: 'true',
     message: 'job added successfully',
-    newJob
+    newJob: newJob.ops[0]
   })
 })
 
