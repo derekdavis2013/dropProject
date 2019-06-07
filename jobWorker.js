@@ -1,18 +1,21 @@
 import request from 'request';
-import database from './db/db';
+import mongodb from 'mongo-mock';
 
-const db = new database();
+mongodb.max_delay = 0;
+const MongoClient = mongodb.MongoClient;
+MongoClient.persist="data.js";
+const mongourl = 'mongodb://localhost:5050/dropproject';
 
 const jobWorker = {
-    foobar: () => {
-        console.log('WORKS', fb.thing);
-    }, 
     fetchHTML: (job) => {
-        request(job.url, { json: true }, (err, res, body) => {
+        request(job, { json: true }, (err, res, body) => {
             if (err) { return console.log(err); }
-            db.col.find({ _id: job._id }, (error, result) => {
-                console.log('result',result);
-            });
+                MongoClient.connect(mongourl)
+                .then(conn => {
+                    return conn.collection('urlJobs')
+                    .updateOne({ url : job }, { status: 'complete', html: body })
+                    .then(() => conn.close())
+                })
         });
     }
 }
