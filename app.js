@@ -1,9 +1,12 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { MongoClient } from 'mongodb';
+import mongodb from 'mongo-mock';
 
-// import db from './db/db'
+// import { MongoMemoryServer } from 'mongodb-memory-server';
+// import { MongoClient } from 'mongodb';
+
+// // import jobWorker from './jobWorker';
+// import database from './db/db';
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,28 +19,62 @@ let port;
 let dbPath;
 let dbName;
 let con;
-let db;
+// let db;
 let col;
 
+// const db = new database();
+
+const MongoClient = mongodb.MongoClient;
+MongoClient.persist="mongo.js";
+
+const mongourl = 'mongodb://localhost:27017/dropproject';
+
+MongoClient.connect(mongourl, {}, function(err, client) {
+  var db = client.db();
+  // Get the documents collection
+  var collection = db.collection('urlJobs');
+  // Insert some documents
+  var docs = [ {a : 1}, {a : 2}, {a : 3}];
+  // collection.insertMany(docs, function(err, result) {
+  //   console.log('inserted',result);
+
+  //   collection.updateOne({ a : 2 }, { $set: { b : 1 } }, function(err, result) {
+  //     console.log('updated',result);
+
+  //     collection.findOne({a:2}, {b:1}, function(err, doc) {
+  //       console.log('foundOne', doc);
+
+  //       collection.removeOne({ a : 3 }, function(err, result) {
+  //         console.log('removed',result);
+
+  //         collection.find({}, {_id:-1}).toArray(function(err, docs) {
+  //           console.log('found',docs);
+            
+  //           function cleanup(){            
+  //             var state = collection.toJSON();
+  //             // Do whatever you want. It's just an Array of Objects.
+  //             state.documents.push({a : 2});
+              
+  //             // truncate
+  //             state.documents.length = 0;
+              
+  //             // closing connection
+  //             db.close();
+  //           }
+            
+  //           setTimeout(cleanup, 1000);
+  //         });
+  //       });
+  //     });
+  //   });
+  // });
+});
 
 const PORT = 5000;
 
-const dbSetup = async () => {
-  const mongod = await new MongoMemoryServer();
-  const uri = await mongod.getConnectionString();
-
-  port = await mongod.getPort();
-  dbPath = await mongod.getDbPath();
-  dbName = await mongod.getDbName();
-  con = await MongoClient.connect(uri, { useNewUrlParser: true });
-  db = con.db(dbName);
-  col = db.collection('urlJobs');
-}
-
-dbSetup();
+// db.init();
 
 app.get('/api/v1/jobs', (req, res) => {
-  // console.log('dbName', mongod.getCollectionInfos());
   res.status(200).send({
     success: 'true',
     message: 'jobs retrieved successfully',
@@ -53,12 +90,15 @@ app.post('/api/v1/new_job', async (req, res) => {
     });
   }
 
-  const newJob = await col.insertOne({ url : req.body.url, status: 'created' });
+  const newJob = await db.col.insertOne({ url : req.body.url, status: 'created' });
+  const result = newJob.ops[0];
+
+  jobWorker.fetchHTML(result);
 
   return res.status(201).send({
     success: 'true',
     message: 'job added successfully',
-    newJob: newJob.ops[0]
+    result
   })
 })
 
