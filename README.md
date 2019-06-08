@@ -21,6 +21,7 @@ Prerequisites:
     `npm run start`
 
 ## Usage
+Prerequisites:
 * REST client (Postman, RESTED for firefox, etc)
 
 Make sure Headers are set to:
