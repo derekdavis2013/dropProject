@@ -4,7 +4,13 @@
   "description": "Example project",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js --exec babel-node --"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "data.js"
+    ]
   },
   "repository": {
     "type": "git",
@@ -15,5 +21,20 @@
   "bugs": {
     "url": "https://github.com/derekdavis2013/dropProject/issues"
   },
-  "homepage": "https://github.com/derekdavis2013/dropProject#readme"
+  "homepage": "https://github.com/derekdavis2013/dropProject#readme",
+  "dependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/node": "^7.4.5",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "is-url": "^1.2.4",
+    "mongo-mock": "^3.7.1",
+    "mongodb": "^3.2.7",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "nodemon": "^1.19.1"
+  }
 }
