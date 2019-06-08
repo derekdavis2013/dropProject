@@ -82,3 +82,9 @@ Returns all submitted jobs
 | jobs           | Array     | An array of all saved jobs.   |
 |                |           |                               |
 
+### Technologies used
+* [Nodejs](https://nodejs.org/en/)
+* [Expressjs](https://expressjs.com/)
+* [Mongodb](https://www.mongodb.com/)
+* [Mongo-Mock](https://www.npmjs.com/package/mongo-mock)
+

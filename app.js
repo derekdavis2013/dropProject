@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mongodb from 'mongo-mock';
 import { ObjectID } from 'mongodb';
+import isUrl from 'is-url';
 
 import jobWorker from './jobWorker';
 
@@ -33,17 +34,23 @@ app.get('/api/v1/all_jobs', (req, res) => {
 });
 
 app.post('/api/v1/new_job', async (req, res) => {
-  if(!req.body.url) {
+  const { url } = req.body;
+  if(!url && typeof url === 'string') {
     return res.status(400).send({
       success: false,
       message: 'url is required'
+    });
+  } else if(!isUrl(url)) {
+    return res.status(400).send({
+      success: false,
+      message: 'Invalid url. Make sure it begins with http/https.'
     });
   }
 
   MongoClient.connect(mongourl)
     .then(conn => {
       return conn.collection('urlJobs')
-      .insertOne({ url : req.body.url, status: 'created' })
+      .insertOne({ url : url, status: 'created' })
       .then(result => {
         return res.status(201).send({
           success: true,
@@ -54,7 +61,7 @@ app.post('/api/v1/new_job', async (req, res) => {
       .then(() => conn.close())
     })
 
-    jobWorker.fetchHTML(req.body.url);
+    jobWorker.fetchHTML(url);
 })
 
 app.get('/api/v1/find_by_id', (req, res) => {
