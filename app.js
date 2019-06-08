@@ -25,7 +25,7 @@ app.get('/api/v1/all_jobs', (req, res) => {
       .then(result => {
         res.status(200).send({
           message: 'All jobs',
-          result
+          jobs: result
         })
       })
       .then(() => conn.close())
@@ -35,7 +35,7 @@ app.get('/api/v1/all_jobs', (req, res) => {
 app.post('/api/v1/new_job', async (req, res) => {
   if(!req.body.url) {
     return res.status(400).send({
-      success: 'false',
+      success: false,
       message: 'url is required'
     });
   }
@@ -46,7 +46,7 @@ app.post('/api/v1/new_job', async (req, res) => {
       .insertOne({ url : req.body.url, status: 'created' })
       .then(result => {
         return res.status(201).send({
-          success: 'true',
+          success: true,
           message: 'job added successfully',
           result: result.ops[0]
         })
@@ -57,7 +57,7 @@ app.post('/api/v1/new_job', async (req, res) => {
     jobWorker.fetchHTML(req.body.url);
 })
 
-app.get('/api/v1/findById', (req, res) => {
+app.get('/api/v1/find_by_id', (req, res) => {
   MongoClient.connect(mongourl)
     .then(conn => {
       return conn.collection('urlJobs')
@@ -65,7 +65,7 @@ app.get('/api/v1/findById', (req, res) => {
       .then(result => {
         const { status, url, html } = result;
         res.status(200).send({
-          message: 'jobs retrieved successfully',
+          message: 'job retrieved successfully',
           status,
           url,
           html
